@@ -11,9 +11,8 @@
  */
 
 import { ImageResponse } from '@vercel/og';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import React from 'react';
-import { uploadToIPFS } from '../../lib/ipfs';
 import { Cast } from '../generatePreview/components/Cast';
 import { Footer } from '../generatePreview/components/Footer';
 import { getCast } from '../generatePreview/services/neynar';
