@@ -31,7 +31,8 @@ export default function CreateImage() {
     setIpfsUrl('');
 
     try {
-      const response = await fetch('/api/createImage', {
+      // First, get the image data
+      const imageResponse = await fetch('/api/createImage', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,12 +40,30 @@ export default function CreateImage() {
         body: JSON.stringify({ hash }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (!imageResponse.ok) {
+        const error = await imageResponse.json();
         throw new Error(error.error || 'Failed to create image');
       }
 
-      const data = await response.json();
+      // Get the image data as a blob
+      const imageBlob = await imageResponse.blob();
+      
+      // Create form data with the image blob
+      const formData = new FormData();
+      formData.append('file', imageBlob, `cast-${hash}.png`);
+
+      // Upload to IPFS
+      const ipfsResponse = await fetch('/api/ipfs', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!ipfsResponse.ok) {
+        const error = await ipfsResponse.json();
+        throw new Error(error.error || 'Failed to upload to IPFS');
+      }
+
+      const data = await ipfsResponse.json();
       setIpfsUrl(data.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create image');

@@ -21,8 +21,8 @@ import { calculateContentHeight } from '../generatePreview/utils/calculations';
 import { handleAPIError, APIError } from '../generatePreview/utils/error-handler';
 import { DIMENSIONS, STYLES } from '../generatePreview/config/constants';
 
-// Use Node.js runtime for better compatibility with file operations and IPFS
-export const runtime = 'nodejs';
+// Use edge runtime for @vercel/og compatibility
+export const runtime = 'edge';
 
 // Use Inter font for consistent rendering
 import { Inter } from 'next/font/google';
@@ -98,21 +98,26 @@ export async function POST(request: NextRequest) {
     try {
       imageResponse = new ImageResponse(
         (
-          <div style={{
-            width: `${DIMENSIONS.WIDTH}px`,
-            height: totalHeight,
-            backgroundColor: STYLES.COLORS.BACKGROUND,
-            fontFamily,
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
-            {/* Content Container */}
-            <div style={{
+          <div
+            style={{
+              width: `${DIMENSIONS.WIDTH}px`,
+              height: `${totalHeight}px`,
+              backgroundColor: STYLES.COLORS.BACKGROUND,
+              fontFamily,
               display: 'flex',
               flexDirection: 'column',
-              position: 'relative',
-              height: totalHeight - DIMENSIONS.FOOTER_HEIGHT,
-            }}>
+            }}
+          >
+            {/* Content Container */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                height: `${totalHeight - DIMENSIONS.FOOTER_HEIGHT}px`,
+                flex: 1,
+              }}
+            >
               {parentCast && <Cast cast={parentCast} offsetY={0} />}
               <Cast 
                 cast={cast} 
@@ -120,13 +125,17 @@ export async function POST(request: NextRequest) {
               />
             </div>
             
-            <div style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: DIMENSIONS.FOOTER_HEIGHT,
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: `${DIMENSIONS.FOOTER_HEIGHT}px`,
+              }}
+            >
               <Footer />
             </div>
           </div>
@@ -160,24 +169,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Preparing IPFS upload');
-    // Validate array buffer
-    if (!arrayBuffer || arrayBuffer.byteLength === 0) {
-      console.error('Generated image is empty');
-      throw new APIError('Generated image is empty or invalid', 500, 'INVALID_IMAGE_ERROR');
-    }
-
-    console.log('Preparing IPFS upload with image size:', arrayBuffer.byteLength);
-    
-    // Convert ArrayBuffer to Buffer for IPFS upload
-    const buffer = Buffer.from(arrayBuffer);
-    const filename = `cast-${body.hash}.png`;
-
-    // Upload directly using the IPFS utility
-    const ipfsUrl = await uploadToIPFS(buffer, filename);
-    console.log('Successfully uploaded to IPFS:', ipfsUrl);
-
-    return NextResponse.json({ url: ipfsUrl });
+    // Return the image data directly
+    return new Response(arrayBuffer, {
+      headers: {
+        'Content-Type': 'image/png',
+        'Cache-Control': 'public, max-age=31536000, immutable'
+      },
+    });
   } catch (error) {
     // Log detailed error information
     console.error('Error in createImage:', {
