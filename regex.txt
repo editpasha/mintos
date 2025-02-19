@@ -1,0 +1,27 @@
+^(?i)(!mint|ok\s+banger|@edit\s+mint)$
+
+Test cases:
+✓ !mint
+✓ ok banger
+✓ OK BANGER
+✓ Ok Banger
+✓ @edit mint
+✓ @EDIT MINT
+✗ !mints
+✗ ok bangers
+✗ @edit mints
+✗ mint
+✗ banger
+✗ edit mint
+
+Explanation:
+^ - Start of string
+(?i) - Case insensitive mode
+( - Start of group
+    !mint - Matches exactly "!mint"
+    | - OR
+    ok\s+banger - Matches "ok" followed by one or more whitespace characters, then "banger"
+    | - OR
+    @edit\s+mint - Matches "@edit" followed by one or more whitespace characters, then "mint"
+) - End of group
+$ - End of string
