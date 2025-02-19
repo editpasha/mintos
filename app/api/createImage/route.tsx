@@ -13,6 +13,7 @@
 import { ImageResponse } from '@vercel/og';
 import { NextRequest } from 'next/server';
 import React from 'react';
+import { uploadToIPFS } from '../../lib/ipfs';
 import { Cast } from '../generatePreview/components/Cast';
 import { Footer } from '../generatePreview/components/Footer';
 import { getCast } from '../generatePreview/services/neynar';
@@ -169,22 +170,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload image to IPFS
-    const formData = new FormData();
-    formData.append('file', new Blob([arrayBuffer], { type: 'image/png' }));
-
-    const ipfsResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ipfs`, {
-      method: 'POST',
-      headers: {
-        'x-api-key': process.env.API_KEY || '',
-      },
-      body: formData
-    });
-
-    if (!ipfsResponse.ok) {
-      throw new APIError('Failed to upload image to IPFS', 500, 'IPFS_UPLOAD_ERROR');
-    }
-
-    const { url } = await ipfsResponse.json();
+    const buffer = Buffer.from(arrayBuffer);
+    const url = await uploadToIPFS(buffer, `cast-${body.hash}.png`);
 
     // Return JSON response with image URL
     return Response.json({ url });
