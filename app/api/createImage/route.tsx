@@ -168,13 +168,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Return the image data directly
-    return new Response(arrayBuffer, {
+    // Upload image to IPFS
+    const formData = new FormData();
+    formData.append('file', new Blob([arrayBuffer], { type: 'image/png' }));
+
+    const ipfsResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ipfs`, {
+      method: 'POST',
       headers: {
-        'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=31536000, immutable'
+        'x-api-key': process.env.API_KEY || '',
       },
+      body: formData
     });
+
+    if (!ipfsResponse.ok) {
+      throw new APIError('Failed to upload image to IPFS', 500, 'IPFS_UPLOAD_ERROR');
+    }
+
+    const { url } = await ipfsResponse.json();
+
+    // Return JSON response with image URL
+    return Response.json({ url });
   } catch (error) {
     // Log detailed error information
     console.error('Error in createImage:', {
