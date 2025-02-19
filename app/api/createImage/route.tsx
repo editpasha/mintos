@@ -21,8 +21,8 @@ import { calculateContentHeight } from '../generatePreview/utils/calculations';
 import { handleAPIError, APIError } from '../generatePreview/utils/error-handler';
 import { DIMENSIONS, STYLES } from '../generatePreview/config/constants';
 
-// Use edge runtime for @vercel/og compatibility
-export const runtime = 'edge';
+// Use Node.js runtime to support Pinata SDK
+export const runtime = 'nodejs';
 
 // Use Inter font for consistent rendering
 import { Inter } from 'next/font/google';
